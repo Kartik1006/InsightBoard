@@ -578,3 +578,183 @@ body {
     padding: 1rem;
   }
 }
+
+/* ============================================================
+   Micro-Animations — Make UI Feel Alive
+   ============================================================ */
+
+/* Sparkle icon continuous subtle animation */
+.sparkle-icon {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    filter: brightness(1.5);
+  }
+}
+
+/* Loading spinner */
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* AI glow accent — animated gradient bar at top of AI panel */
+.ai-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #818cf8, #a78bfa, #c084fc, #a78bfa, #818cf8);
+  background-size: 200% 100%;
+  animation: ai-glow-sweep 3s ease-in-out infinite;
+}
+
+@keyframes ai-glow-sweep {
+  0% {
+    background-position: 0% 0;
+  }
+
+  50% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+/* Zoom hint — appears on chart hover */
+.chart-container:hover .zoom-hint,
+div[style*="zoom-in"]:hover .zoom-hint {
+  opacity: 1 !important;
+}
+
+/* Chart container enhanced hover */
+.chart-container {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chart-container:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border-secondary);
+}
+
+/* Zoomed chart container — larger rendering */
+.chart-zoomed .chart-container {
+  border: none;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: var(--shadow-xl);
+}
+
+.chart-zoomed .chart-container:hover {
+  transform: none;
+}
+
+/* KPI card enhanced — breathing border glow on hover */
+.kpi-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-xl);
+}
+
+.kpi-card:hover::before {
+  animation: kpi-glow-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes kpi-glow-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Info bar subtle glow */
+.info-bar-glow {
+  transition: all 0.3s ease;
+}
+
+.info-bar-glow:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+/* Filter panel smooth transitions */
+.filter-panel-animated {
+  transition: all 0.3s ease;
+}
+
+/* Smooth entrance for page content */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Custom scroll for zoomed chart */
+.chart-zoomed {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-secondary) transparent;
+}
+
+/* Button hover micro-animation */
+.btn-primary {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-secondary {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+}

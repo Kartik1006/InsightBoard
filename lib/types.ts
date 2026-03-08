@@ -36,6 +36,8 @@ export interface ColumnMeta {
   mean?: number;
   median?: number;
   sampleValues: (string | number | boolean | null)[];
+  stats?: { min?: number; max?: number; mean?: number; median?: number };
+  topValues?: { value: string; count: number }[];
 }
 
 export interface DataSet {
@@ -45,6 +47,9 @@ export interface DataSet {
   rowCount: number;
   columnCount: number;
 }
+
+// Alias for cleaned dataset (same shape, semantic distinction)
+export type CleanedDataset = DataSet;
 
 export interface CleaningAction {
   id: string;

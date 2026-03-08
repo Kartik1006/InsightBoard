@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useDataStore } from '@/hooks/useDataStore';
 import { useTheme } from 'next-themes';
 import { ChartRecommendation } from '@/lib/types';
@@ -8,6 +8,8 @@ import { KPICard } from './KPICard';
 import { ChartWidget } from './ChartWidget';
 import { FilterPanel } from './FilterPanel';
 import { CustomChartBuilder } from './CustomChartBuilder';
+import { AIInsightsPanel } from './AIInsightsPanel';
+import { ChartZoom, ZoomTrigger } from './ChartZoom';
 import { motion } from 'framer-motion';
 import {
     BarChart3,
@@ -18,6 +20,20 @@ import {
     PieChart,
     GitBranch,
 } from 'lucide-react';
+
+// Stagger animation container
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    },
+};
+
+const staggerItem = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring' as const, damping: 20, stiffness: 200 } },
+};
 
 // Insight category icon mapping
 const insightIcons: Record<string, React.ComponentType<{ size?: number; style?: React.CSSProperties }>> = {
@@ -40,16 +56,13 @@ export function DashboardView() {
     const isDark = theme === 'dark';
     const { dashboardConfig, cleanedDataset } = state;
 
-    // Charts the user has hidden
     const [hiddenChartIds, setHiddenChartIds] = useState<Set<string>>(new Set());
-    // Custom user-created charts
     const [customCharts, setCustomCharts] = useState<ChartRecommendation[]>([]);
+    const [zoomedChart, setZoomedChart] = useState<ChartRecommendation | null>(null);
 
     if (!dashboardConfig || !cleanedDataset) return null;
 
     const { kpis, charts, filters, insights } = dashboardConfig;
-
-    // Filter out hidden auto-generated charts
     const visibleCharts = charts.filter((c) => !hiddenChartIds.has(c.id));
 
     const handleFiltersChange = (newFilters: typeof filters) => {
@@ -78,6 +91,9 @@ export function DashboardView() {
                 minHeight: 'calc(100vh - 65px)',
             }}
         >
+            {/* Chart Zoom Overlay */}
+            <ChartZoom chart={zoomedChart} onClose={() => setZoomedChart(null)} />
+
             {/* Sidebar — Filters */}
             <aside>
                 <FilterPanel filters={filters} onFiltersChange={handleFiltersChange} />
@@ -85,10 +101,12 @@ export function DashboardView() {
 
             {/* Main Content */}
             <main>
-                {/* File info bar */}
+                {/* File info bar — with subtle entrance */}
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ type: 'spring', damping: 25 }}
+                    className="info-bar-glow"
                     style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -101,7 +119,12 @@ export function DashboardView() {
                     }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <FileText size={16} style={{ color: 'var(--accent-primary)' }} />
+                        <motion.div
+                            animate={{ rotate: [0, 5, -5, 0] }}
+                            transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
+                        >
+                            <FileText size={16} style={{ color: 'var(--accent-primary)' }} />
+                        </motion.div>
                         <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                             {cleanedDataset.fileName}
                         </span>
@@ -110,14 +133,22 @@ export function DashboardView() {
                         </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <BarChart3 size={14} style={{ color: 'var(--text-muted)' }} />
+                        <motion.div
+                            animate={{ scale: [1, 1.15, 1] }}
+                            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                        >
+                            <BarChart3 size={14} style={{ color: 'var(--accent-primary)' }} />
+                        </motion.div>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                             {visibleCharts.length + customCharts.length} charts · {kpis.length} KPIs
                         </span>
                     </div>
                 </motion.div>
 
-                {/* Data Insights Panel */}
+                {/* AI Insights Panel — Gemini powered */}
+                <AIInsightsPanel dataset={cleanedDataset} />
+
+                {/* Data Insights Panel (rule-based) */}
                 {insights.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
@@ -156,8 +187,11 @@ export function DashboardView() {
                                 const Icon = insightIcons[insight.category] || Lightbulb;
                                 const alert = insightAlertStyles[insight.alertLevel] || insightAlertStyles.neutral;
                                 return (
-                                    <div
+                                    <motion.div
                                         key={insight.id}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.05 }}
                                         style={{
                                             display: 'flex',
                                             alignItems: 'flex-start',
@@ -173,16 +207,19 @@ export function DashboardView() {
                                     >
                                         <Icon size={14} style={{ color: alert.color, flexShrink: 0, marginTop: 2 }} />
                                         <span>{insight.text}</span>
-                                    </div>
+                                    </motion.div>
                                 );
                             })}
                         </div>
                     </motion.div>
                 )}
 
-                {/* KPI Cards */}
+                {/* KPI Cards — staggered entrance */}
                 {kpis.length > 0 && (
-                    <div
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        animate="show"
                         style={{
                             display: 'grid',
                             gridTemplateColumns: `repeat(auto-fit, minmax(200px, 1fr))`,
@@ -191,14 +228,19 @@ export function DashboardView() {
                         }}
                     >
                         {kpis.map((kpi, i) => (
-                            <KPICard key={kpi.id} kpi={kpi} index={i} />
+                            <motion.div key={kpi.id} variants={staggerItem}>
+                                <KPICard kpi={kpi} index={i} />
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 )}
 
-                {/* Auto-Generated Charts — removable */}
+                {/* Auto-Generated Charts — removable + zoomable */}
                 {visibleCharts.length > 0 && (
-                    <div
+                    <motion.div
+                        variants={staggerContainer}
+                        initial="hidden"
+                        animate="show"
                         style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
@@ -207,14 +249,20 @@ export function DashboardView() {
                         }}
                     >
                         {visibleCharts.map((chart, i) => (
-                            <ChartWidget
-                                key={chart.id}
-                                chart={chart}
-                                index={i}
-                                onRemove={handleRemoveAutoChart}
-                            />
+                            <motion.div key={chart.id} variants={staggerItem}>
+                                <ZoomTrigger onZoom={() => setZoomedChart(chart)}>
+                                    <ChartWidget
+                                        chart={chart}
+                                        index={i}
+                                        onRemove={(id) => {
+                                            // Prevent zoom when clicking remove
+                                            setHiddenChartIds((prev) => new Set(prev).add(id));
+                                        }}
+                                    />
+                                </ZoomTrigger>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 )}
 
                 {/* Custom Charts + Builder */}
@@ -226,7 +274,9 @@ export function DashboardView() {
 
                 {/* Empty state */}
                 {visibleCharts.length === 0 && kpis.length === 0 && customCharts.length === 0 && (
-                    <div
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         style={{
                             display: 'flex',
                             flexDirection: 'column',
@@ -236,11 +286,16 @@ export function DashboardView() {
                             color: 'var(--text-muted)',
                         }}
                     >
-                        <BarChart3 size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                        <motion.div
+                            animate={{ y: [0, -8, 0] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                        >
+                            <BarChart3 size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                        </motion.div>
                         <p style={{ fontSize: '1rem', fontWeight: 500 }}>
                             No visualizations available. Try creating a custom chart below.
                         </p>
-                    </div>
+                    </motion.div>
                 )}
             </main>
         </div>
