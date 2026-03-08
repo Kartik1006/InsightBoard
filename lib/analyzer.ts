@@ -349,7 +349,9 @@ function recommendCharts(
 
     // ── STRATEGY 6: High-cardinality category → Top-N bar ──────
     for (const catC of highCards.slice(0, 2)) {
-        const data = countByCategory(dataset.rows, catC.col.name, 15);
+        const rawData = countByCategory(dataset.rows, catC.col.name, 15);
+        // Remap {name, value} → {[colName], Count} for bar chart dataKey matching
+        const data = rawData.map((d) => ({ [catC.col.name]: d.name, Count: d.value }));
         if (data.length >= 2) {
             charts.push({
                 id: generateId(),
@@ -370,7 +372,9 @@ function recommendCharts(
     for (const catC of medCards.slice(0, 2)) {
         // Skip if already charted with a measure
         if (charts.some((c) => c.xAxis === catC.col.name)) continue;
-        const data = countByCategory(dataset.rows, catC.col.name, 20);
+        const rawData = countByCategory(dataset.rows, catC.col.name, 20);
+        // Remap {name, value} → {[colName], Count} for bar chart dataKey matching
+        const data = rawData.map((d) => ({ [catC.col.name]: d.name, Count: d.value }));
         if (data.length >= 2) {
             charts.push({
                 id: generateId(),

@@ -51,20 +51,20 @@
 }
 
 .dark {
-  --bg-primary: #06060a;
-  --bg-secondary: #0c0c14;
-  --bg-card: #12121e;
-  --bg-card-hover: #1a1a2e;
-  --bg-elevated: #16162a;
-  --bg-input: #1a1a2e;
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-card: #111111;
+  --bg-card-hover: #1a1a1a;
+  --bg-elevated: #161616;
+  --bg-input: #1a1a1a;
 
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --text-inverse: #0f172a;
 
-  --border-primary: #1e293b;
-  --border-secondary: #334155;
+  --border-primary: #222222;
+  --border-secondary: #333333;
 
   --accent-primary: #818cf8;
   --accent-primary-hover: #6366f1;
@@ -79,13 +79,13 @@
   --danger: #fa4d56;
   --danger-bg: rgba(250, 77, 86, 0.12);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
 
-  --glass-bg: rgba(18, 18, 30, 0.7);
-  --glass-border: rgba(30, 41, 59, 0.5);
+  --glass-bg: rgba(17, 17, 17, 0.8);
+  --glass-border: rgba(34, 34, 34, 0.5);
   --glass-blur: 16px;
 }
 
@@ -265,8 +265,8 @@ body {
 
 /* Force Recharts tooltip text to be readable in dark mode */
 .dark .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: #1e293b !important;
-  border: 1px solid #334155 !important;
+  background: #1a1a1a !important;
+  border: 1px solid #333333 !important;
   color: #f1f5f9 !important;
 }
 
