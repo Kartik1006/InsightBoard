@@ -43,76 +43,27 @@ export function KPICard({ kpi, index }: KPICardProps) {
 
     return (
         <motion.div
-            className={`kpi-card alert-${kpi.alertLevel}`}
-            initial={{ opacity: 0, y: 20 }}
+            className="kpi-card"
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.1 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+            style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}
         >
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
-                    marginBottom: '0.75rem',
-                }}
-            >
-                <span
-                    style={{
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: 'var(--text-secondary)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                    }}
-                >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {kpi.label}
                 </span>
-                <div
-                    style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 'var(--radius-sm)',
-                        background: alertBg,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    <Icon size={16} style={{ color: alertColor }} />
-                </div>
+                {kpi.change !== undefined && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', background: alertBg, color: alertColor, fontSize: '0.75rem', fontWeight: 600 }}>
+                        {kpi.change >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                        {kpi.changeLabel}
+                    </div>
+                )}
             </div>
 
-            <div
-                style={{
-                    fontSize: '1.75rem',
-                    fontWeight: 800,
-                    color: 'var(--text-primary)',
-                    letterSpacing: '-0.02em',
-                    marginBottom: '0.5rem',
-                    lineHeight: 1,
-                }}
-            >
+            <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.04em', lineHeight: 1 }}>
                 {kpi.formattedValue}
             </div>
-
-            {kpi.change !== undefined && (
-                <div
-                    style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: 'var(--radius-full)',
-                        background: alertBg,
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        color: alertColor,
-                    }}
-                >
-                    {kpi.change >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                    {kpi.changeLabel}
-                </div>
-            )}
         </motion.div>
     );
 }

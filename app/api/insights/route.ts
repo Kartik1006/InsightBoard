@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyD7H7cIm5jQ23Bh9GR7Zzu_1vbu2qnq1_U';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-
 export async function POST(req: NextRequest) {
     try {
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+       
         const { dataSummary } = await req.json();
 
         if (!dataSummary) {
@@ -40,15 +40,33 @@ ${dataSummary}`;
         }
 
         const data = await response.json();
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+        let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
 
-        // Extract JSON array from response (handle markdown fences)
-        const jsonMatch = rawText.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) {
-            return NextResponse.json({ insights: [] });
+        let insights = [];
+        try {
+            // Extract JSON from markdown fences if any
+            rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+            const firstBracket = rawText.indexOf('[');
+            const firstBrace = rawText.indexOf('{');
+
+            if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+                const lastBracket = rawText.lastIndexOf(']');
+                if (lastBracket !== -1) {
+                    insights = JSON.parse(rawText.substring(firstBracket, lastBracket + 1));
+                }
+            } else if (firstBrace !== -1) {
+                const lastBrace = rawText.lastIndexOf('}');
+                if (lastBrace !== -1) {
+                    const parsedObj = JSON.parse(rawText.substring(firstBrace, lastBrace + 1));
+                    insights = Array.isArray(parsedObj.insights) ? parsedObj.insights : [];
+                }
+            }
+        } catch (err) {
+            console.error('Failed to parse Gemini API JSON:', err);
+            // Fallback or attempt basic recovery could go here
         }
 
-        const insights = JSON.parse(jsonMatch[0]);
         return NextResponse.json({ insights });
     } catch (error) {
         console.error('AI Insights error:', error);

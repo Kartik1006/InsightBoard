@@ -26,6 +26,9 @@ import {
     ResponsiveContainer,
     Legend,
 } from 'recharts';
+import { useRef, useCallback } from 'react';
+import html2canvas from 'html2canvas';
+import { Download } from 'lucide-react';
 
 interface ChartWidgetProps {
     chart: ChartRecommendation;
@@ -364,115 +367,99 @@ export function ChartWidget({ chart, index, onRemove }: ChartWidgetProps) {
                 return <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>Unsupported chart type</div>;
         }
     };
+    
+    const chartRef = useRef<HTMLDivElement>(null);
+
+    const handleDownload = useCallback(async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!chartRef.current) return;
+        try {
+            // Apply slight timeout to ensure fonts and SVG paths are fully rendered
+            const canvas = await html2canvas(chartRef.current, {
+                backgroundColor: '#000000',
+                scale: 2,
+                logging: false,
+                ignoreElements: (element) => element.classList.contains('chart-controls'),
+            });
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = `${chart.title.replace(/\s+/g, '_').toLowerCase()}.png`;
+            link.href = url;
+            link.click();
+        } catch (error) {
+            console.error('Failed to download chart:', error);
+        }
+    }, [chart.title]);
 
     return (
         <motion.div
+            ref={chartRef}
             className="chart-container"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
+            style={{ position: 'relative' }}
         >
-            {/* Remove button */}
-            {onRemove && (
+            {/* Top Right Controls */}
+            <div className="chart-controls" style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, display: 'flex', gap: '0.5rem' }}>
                 <button
-                    onClick={() => onRemove(chart.id)}
-                    title="Remove chart"
+                    onClick={handleDownload}
+                    title="Download chart as PNG"
                     style={{
-                        position: 'absolute',
-                        top: 10,
-                        right: 10,
-                        zIndex: 10,
                         background: 'var(--bg-card-hover)',
                         border: '1px solid var(--border-primary)',
-                        borderRadius: '50%',
-                        width: 26,
-                        height: 26,
+                        borderRadius: 'var(--radius-md)',
+                        padding: '0.375rem',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
                         color: 'var(--text-muted)',
-                        fontSize: '14px',
-                        fontWeight: 500,
                         transition: 'all 0.2s ease',
-                        opacity: 0.6,
                     }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.opacity = '1';
-                        e.currentTarget.style.color = 'var(--danger)';
-                        e.currentTarget.style.borderColor = 'var(--danger)';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.opacity = '0.6';
-                        e.currentTarget.style.color = 'var(--text-muted)';
-                        e.currentTarget.style.borderColor = 'var(--border-primary)';
-                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--text-secondary)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-primary)'; }}
                 >
-                    ✕
+                    <Download size={14} />
                 </button>
-            )}
-
-            {/* Chart header */}
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '1rem',
-                    paddingRight: onRemove ? '2rem' : 0,
-                }}
-            >
-                <h4
-                    style={{
-                        fontSize: '0.875rem',
-                        fontWeight: 700,
-                        color: 'var(--text-primary)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        margin: 0,
-                    }}
-                >
-                    <span
+                {onRemove && (
+                    <button
+                        onClick={() => onRemove(chart.id)}
+                        title="Remove chart"
                         style={{
-                            width: 3,
-                            height: 16,
-                            borderRadius: 2,
-                            background: purpose.color,
-                            display: 'inline-block',
+                            background: 'var(--bg-card-hover)',
+                            border: '1px solid var(--border-primary)',
+                            borderRadius: 'var(--radius-md)',
+                            padding: '0.375rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: 'var(--text-muted)',
+                            transition: 'all 0.2s ease',
                         }}
-                    />
-                    {chart.title}
-                </h4>
-                <span
-                    style={{
-                        fontSize: '0.625rem',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em',
-                        color: purpose.color,
-                        background: `${purpose.color}15`,
-                        padding: '0.2rem 0.5rem',
-                        borderRadius: 'var(--radius-full)',
-                    }}
-                >
-                    {purpose.label}
-                </span>
+                        onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.borderColor = 'var(--danger)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-primary)'; }}
+                    >
+                        ✕
+                    </button>
+                )}
             </div>
 
-            {/* Chart description */}
-            {chart.description && (
-                <p
-                    style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--text-muted)',
-                        marginBottom: '0.75rem',
-                        lineHeight: 1.5,
-                    }}
-                >
-                    {chart.description}
-                </p>
-            )}
+            {/* Chart header */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1.5rem', paddingRight: onRemove ? '2rem' : 0 }}>
+                <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {purpose.label}
+                </span>
+                <h4 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                    {chart.title}
+                </h4>
+                {chart.description && (
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', margin: 0, marginTop: '0.25rem', lineHeight: 1.4 }}>
+                        {chart.description}
+                    </p>
+                )}
+            </div>
 
             {renderChart()}
         </motion.div>

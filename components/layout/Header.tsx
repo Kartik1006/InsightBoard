@@ -25,29 +25,29 @@ export function Header() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '1rem 2rem',
+                padding: '0 2rem',
                 borderBottom: '1px solid var(--border-primary)',
-                background: 'var(--bg-secondary)',
+                background: 'var(--bg-card)',
                 position: 'sticky',
                 top: 0,
                 zIndex: 50,
-                backdropFilter: 'blur(12px)',
+                height: '64px',
             }}
         >
             {/* Logo */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <div
                     style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 'var(--radius-md)',
-                        background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                        width: 28,
+                        height: 28,
+                        borderRadius: 'var(--radius-sm)',
+                        background: 'var(--text-primary)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                     }}
                 >
-                    <Sparkles size={20} color="white" />
+                    <Sparkles size={16} color="var(--bg-primary)" />
                 </div>
                 <span
                     style={{

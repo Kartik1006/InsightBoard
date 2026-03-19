@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useRef } from 'react';
 import { useDataStore } from '@/hooks/useDataStore';
-import { Upload, FileSpreadsheet, FileJson, FileText, Loader2 } from 'lucide-react';
+import { Upload, FileSpreadsheet, FileJson, FileText, Loader2, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function FileUploader() {
@@ -35,28 +35,21 @@ export function FileUploader() {
         [handleFile]
     );
 
-    const supportedFormats = [
-        { ext: 'CSV', icon: FileText, color: '#22c55e' },
-        { ext: 'Excel', icon: FileSpreadsheet, color: '#6366f1' },
-        { ext: 'JSON', icon: FileJson, color: '#f59e0b' },
-    ];
-
     return (
-        <div className="gradient-bg" style={{ minHeight: 'calc(100vh - 65px)' }}>
+        <div style={{ minHeight: 'calc(100vh - 65px)', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div
                 style={{
-                    maxWidth: 700,
+                    width: '100%',
+                    maxWidth: 1000,
                     margin: '0 auto',
-                    padding: '6rem 2rem',
+                    padding: '4rem 2rem',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '2rem',
-                    position: 'relative',
-                    zIndex: 1,
+                    gap: '4rem',
                 }}
             >
-                {/* Title */}
+                {/* Hero Title Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -65,43 +58,65 @@ export function FileUploader() {
                 >
                     <h1
                         style={{
-                            fontSize: '2.5rem',
+                            fontSize: 'clamp(3.5rem, 8vw, 6.5rem)',
                             fontWeight: 800,
-                            letterSpacing: '-0.03em',
-                            lineHeight: 1.2,
-                            marginBottom: '0.75rem',
-                            background: 'linear-gradient(135deg, var(--text-primary), var(--accent-primary))',
+                            letterSpacing: '-0.04em',
+                            lineHeight: 1.05,
+                            background: 'linear-gradient(135deg, var(--text-primary) 30%, var(--accent-primary))',
                             WebkitBackgroundClip: 'text',
                             WebkitTextFillColor: 'transparent',
+                            marginBottom: '1.5rem',
                         }}
                     >
-                        Turn Raw Data Into
-                        <br />
-                        Beautiful Dashboards
+                        Visualize data.<br />
+                        <span style={{ color: 'var(--text-secondary)' }}>Instantly.</span>
                     </h1>
                     <p
                         style={{
                             fontSize: '1.125rem',
-                            color: 'var(--text-secondary)',
-                            maxWidth: 480,
+                            color: 'var(--text-muted)',
+                            maxWidth: 500,
                             margin: '0 auto',
                             lineHeight: 1.6,
                         }}
                     >
-                        Upload your data file and we&apos;ll auto-generate interactive
-                        visualizations, KPIs, and insights — no coding required.
+                        Drop any CSV or JSON file. Our engine parses your raw data, defines vital metrics, and generates a stunning financial-grade dashboard.
                     </p>
                 </motion.div>
 
-                {/* Upload Zone */}
+                {/* Main Action Area (Upload + Presets) */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    style={{ width: '100%' }}
+                    style={{
+                        width: '100%',
+                        maxWidth: 700,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem'
+                    }}
                 >
+                    {/* Error */}
+                    {state.error && (
+                        <div
+                            style={{
+                                background: 'var(--danger-bg)',
+                                border: '1px solid var(--danger)',
+                                borderRadius: 'var(--radius-md)',
+                                padding: '1rem',
+                                color: 'var(--danger)',
+                                fontSize: '0.875rem',
+                                width: '100%',
+                                textAlign: 'center',
+                            }}
+                        >
+                            {state.error}
+                        </div>
+                    )}
+
+                    {/* Upload Zone */}
                     <div
-                        className={`upload-zone ${isDragging ? 'drag-active' : ''}`}
                         onDragOver={(e) => {
                             e.preventDefault();
                             setIsDragging(true);
@@ -110,12 +125,17 @@ export function FileUploader() {
                         onDrop={onDrop}
                         onClick={() => inputRef.current?.click()}
                         style={{
-                            padding: '3.5rem 2rem',
+                            padding: '4rem 2rem',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '1.25rem',
+                            gap: '1.5rem',
                             textAlign: 'center',
+                            background: isDragging ? 'var(--bg-card-hover)' : 'var(--bg-card)',
+                            border: `1px ${isDragging ? 'solid' : 'dashed'} ${isDragging ? 'var(--text-primary)' : 'var(--border-primary)'}`,
+                            borderRadius: 'var(--radius-lg)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
                         }}
                     >
                         <input
@@ -124,7 +144,7 @@ export function FileUploader() {
                             accept=".csv,.xlsx,.xls,.json,.tsv"
                             onChange={onFileSelect}
                             style={{ display: 'none' }}
-                            id="file-upload"
+                            id="file-upload-main"
                         />
 
                         {state.isLoading ? (
@@ -132,147 +152,95 @@ export function FileUploader() {
                                 <Loader2
                                     size={48}
                                     style={{
-                                        color: 'var(--accent-primary)',
+                                        color: 'var(--text-primary)',
                                         animation: 'spin 1s linear infinite',
                                     }}
                                 />
-                                <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>
-                                    Parsing and analyzing your data...
-                                </p>
                                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                             </>
                         ) : (
                             <>
                                 <div
                                     style={{
-                                        width: 72,
-                                        height: 72,
-                                        borderRadius: 'var(--radius-lg)',
-                                        background: 'var(--accent-glow)',
+                                        width: 64,
+                                        height: 64,
+                                        borderRadius: 'var(--radius-full)',
+                                        background: 'var(--bg-secondary)',
+                                        border: '1px solid var(--border-primary)',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                     }}
                                 >
-                                    <Upload size={32} style={{ color: 'var(--accent-primary)' }} />
+                                    <Upload size={24} style={{ color: 'var(--text-primary)' }} />
                                 </div>
                                 <div>
                                     <p
                                         style={{
-                                            fontSize: '1.125rem',
+                                            fontSize: '1.25rem',
                                             fontWeight: 600,
                                             color: 'var(--text-primary)',
-                                            marginBottom: '0.375rem',
+                                            marginBottom: '0.25rem',
+                                            letterSpacing: '-0.02em'
                                         }}
                                     >
-                                        {isDragging ? 'Drop your file here!' : 'Drag & drop your data file'}
+                                        Drop your file here
                                     </p>
                                     <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                                        or <span style={{ color: 'var(--accent-primary)', fontWeight: 500 }}>click to browse</span>
+                                        Supports CSV, Excel, and JSON
                                     </p>
                                 </div>
                             </>
                         )}
                     </div>
-                </motion.div>
 
-                {/* Error */}
-                {state.error && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        style={{
-                            background: 'var(--danger-bg)',
-                            border: '1px solid var(--danger)',
-                            borderRadius: 'var(--radius-md)',
-                            padding: '1rem 1.25rem',
-                            color: 'var(--danger)',
-                            fontSize: '0.875rem',
-                            width: '100%',
-                        }}
-                    >
-                        {state.error}
-                    </motion.div>
-                )}
-
-                {/* Supported formats */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
-                    style={{
-                        display: 'flex',
-                        gap: '0.75rem',
-                        justifyContent: 'center',
-                        flexWrap: 'wrap',
-                    }}
-                >
-                    {supportedFormats.map((fmt) => (
-                        <div
-                            key={fmt.ext}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.5rem 1rem',
-                                borderRadius: 'var(--radius-full)',
-                                background: 'var(--bg-card)',
-                                border: '1px solid var(--border-primary)',
-                                fontSize: '0.8125rem',
-                                fontWeight: 500,
-                                color: 'var(--text-secondary)',
-                            }}
-                        >
-                            <fmt.icon size={16} style={{ color: fmt.color }} />
-                            {fmt.ext}
+                    {/* Presets Row */}
+                    {!state.isLoading && (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1rem' }}>
+                            {[
+                                { name: 'Sales Pipeline', url: '/sample_sales.csv' },
+                                { name: 'Customer Retail', url: '/people-1000.csv' },
+                                { name: 'Product Inventory', url: '/products-1000.csv' },
+                            ].map((preset) => (
+                                <button
+                                    key={preset.name}
+                                    onClick={async (e) => {
+                                        e.stopPropagation();
+                                        try {
+                                            const res = await fetch(preset.url);
+                                            const blob = await res.blob();
+                                            const file = new File([blob], preset.url.replace('/', ''), { type: 'text/csv' });
+                                            await uploadFile(file);
+                                        } catch (err) {
+                                            console.error('Failed to load preset:', err);
+                                        }
+                                    }}
+                                    style={{
+                                        padding: '1rem',
+                                        background: 'var(--bg-card)',
+                                        border: '1px solid var(--border-primary)',
+                                        borderRadius: 'var(--radius-md)',
+                                        cursor: 'pointer',
+                                        textAlign: 'left',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.5rem',
+                                        transition: 'border-color 0.2s ease',
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--text-secondary)')}
+                                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-primary)')}
+                                >
+                                    <div style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        Preset
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>{preset.name}</span>
+                                        <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
+                                    </div>
+                                </button>
+                            ))}
                         </div>
-                    ))}
-                </motion.div>
-
-                {/* Features */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.6 }}
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '1.5rem',
-                        width: '100%',
-                        marginTop: '2rem',
-                    }}
-                >
-                    {[
-                        { title: 'Auto Clean', desc: 'Smart data cleaning removes errors automatically' },
-                        { title: 'Smart Charts', desc: 'AI picks the best chart type for your data' },
-                        { title: 'Instant KPIs', desc: 'Key metrics detected and highlighted instantly' },
-                    ].map((feat) => (
-                        <div
-                            key={feat.title}
-                            className="glass-card"
-                            style={{ padding: '1.25rem', textAlign: 'center' }}
-                        >
-                            <h3
-                                style={{
-                                    fontSize: '0.9375rem',
-                                    fontWeight: 700,
-                                    color: 'var(--text-primary)',
-                                    marginBottom: '0.375rem',
-                                }}
-                            >
-                                {feat.title}
-                            </h3>
-                            <p
-                                style={{
-                                    fontSize: '0.8125rem',
-                                    color: 'var(--text-muted)',
-                                    lineHeight: 1.5,
-                                }}
-                            >
-                                {feat.desc}
-                            </p>
-                        </div>
-                    ))}
+                    )}
                 </motion.div>
             </div>
         </div>
