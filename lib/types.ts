@@ -98,6 +98,7 @@ export interface ChartRecommendation {
   priority: number;
   purpose: ChartPurpose;
   description?: string; // insight description
+  isCustom?: boolean;
 }
 
 export interface FilterOption {
