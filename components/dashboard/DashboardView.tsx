@@ -9,7 +9,7 @@ import { ChartWidget } from './ChartWidget';
 import { FilterPanel } from './FilterPanel';
 import { CustomChartBuilder } from './CustomChartBuilder';
 import { AIInsightsPanel } from './AIInsightsPanel';
-import { ChartZoom, ZoomTrigger } from './ChartZoom';
+
 import { motion } from 'framer-motion';
 import { BarChart3, FileText, Lightbulb, TrendingUp, AlertTriangle, PieChart, GitBranch } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -30,7 +30,7 @@ const insightAlertStyles: Record<string, { bg: string; border: string; color: st
     neutral: { bg: 'var(--bg-card-hover)', border: 'var(--border-secondary)', color: 'var(--text-secondary)' },
 };
 
-function SortableChartItem({ chart, index, onRemove, setZoomedChart }: any) {
+function SortableChartItem({ chart, index, onRemove }: any) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: chart.id });
     const span = chart.type === 'pie' || chart.type === 'radar' || chart.type === 'donut' ? 4 : 6;
     
@@ -56,13 +56,12 @@ function SortableChartItem({ chart, index, onRemove, setZoomedChart }: any) {
                     zIndex: 20 
                 }} 
             />
-            <ZoomTrigger onZoom={() => setZoomedChart(chart)}>
-                <ChartWidget
-                    chart={chart}
-                    index={index}
-                    onRemove={onRemove}
-                />
-            </ZoomTrigger>
+            <ChartWidget
+                chart={chart}
+                index={index}
+                onRemove={onRemove}
+                enableFlip={true}
+            />
         </div>
     );
 }
@@ -75,7 +74,7 @@ export function DashboardView() {
 
     const [hiddenChartIds, setHiddenChartIds] = useState<Set<string>>(new Set());
     const [customCharts, setCustomCharts] = useState<ChartRecommendation[]>([]);
-    const [zoomedChart, setZoomedChart] = useState<ChartRecommendation | null>(null);
+
     const [chartOrder, setChartOrder] = useState<string[]>([]);
 
     useEffect(() => {
@@ -129,7 +128,7 @@ export function DashboardView() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 64px)', background: 'var(--bg-primary)' }}>
-            <ChartZoom chart={zoomedChart} onClose={() => setZoomedChart(null)} />
+
             <FilterPanel filters={filters} onFiltersChange={handleFiltersChange} />
 
             <main style={{ padding: '2rem 3rem', maxWidth: '1800px', margin: '0 auto', width: '100%' }}>
@@ -199,7 +198,6 @@ export function DashboardView() {
                                     chart={chart} 
                                     index={i} 
                                     onRemove={chart.isCustom ? handleRemoveCustomChart : handleRemoveChart} 
-                                    setZoomedChart={setZoomedChart} 
                                 />
                             ))}
                         </div>

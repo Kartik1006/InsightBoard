@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
 export async function POST(req: NextRequest) {
     try {
-        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-       
+        const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+        if (!OPENROUTER_API_KEY) {
+            return NextResponse.json({ error: 'API key not configured', insights: [] }, { status: 500 });
+        }
+
         const { dataSummary } = await req.json();
 
         if (!dataSummary) {
@@ -21,26 +25,35 @@ Respond ONLY with a valid JSON array of insight objects. No markdown, no explana
 Dataset Summary:
 ${dataSummary}`;
 
-        const response = await fetch(GEMINI_URL, {
+        const response = await fetch(OPENROUTER_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                'HTTP-Referer': 'http://localhost:3000',
+                'X-Title': 'InsightBoard Dashboard',
+            },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 1024,
-                },
+                model: 'openai/gpt-oss-120b',
+                messages: [
+                    {
+                        role: 'user',
+                        content: prompt,
+                    },
+                ],
+                temperature: 0.7,
+                max_tokens: 1024,
             }),
         });
 
         if (!response.ok) {
             const errText = await response.text();
-            console.error('Gemini API error:', errText);
-            return NextResponse.json({ error: 'Gemini API failed', insights: [] }, { status: 502 });
+            console.error('OpenRouter API error:', errText);
+            return NextResponse.json({ error: 'OpenRouter API failed', insights: [] }, { status: 502 });
         }
 
         const data = await response.json();
-        let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+        let rawText = data?.choices?.[0]?.message?.content || '[]';
 
         let insights = [];
         try {
@@ -63,8 +76,7 @@ ${dataSummary}`;
                 }
             }
         } catch (err) {
-            console.error('Failed to parse Gemini API JSON:', err);
-            // Fallback or attempt basic recovery could go here
+            console.error('Failed to parse OpenRouter API JSON:', err);
         }
 
         return NextResponse.json({ insights });

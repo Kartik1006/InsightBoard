@@ -227,13 +227,74 @@ body {
   border: 1px solid var(--border-primary);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
-  transition: all 0.2s ease;
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   box-shadow: var(--shadow-sm);
 }
 
 .chart-container:hover {
   box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================
+   3D Card Flip — Wrapper + Front + Back
+   ============================================================ */
+
+.card-flip-wrapper {
+  perspective: 1200px;
+  cursor: pointer;
+  height: 100%;
+}
+
+.card-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.card-flip-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card-front {
+  position: relative;
+  z-index: 2;
+}
+
+.card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
+.card-back-content {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Fluid hover zoom — chart cards */
+.card-flip-wrapper:hover .card-front .chart-container {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--accent-primary);
+}
+
+/* Flip hint — appears on hover (front only) */
+.card-flip-wrapper:hover .flip-hint {
+  opacity: 1 !important;
 }
 
 /* ============================================================
@@ -620,23 +681,6 @@ body {
   }
 }
 
-/* Zoom hint — appears on chart hover */
-.chart-container:hover .zoom-hint,
-div[style*="zoom-in"]:hover .zoom-hint {
-  opacity: 1 !important;
-}
-
-/* Chart container enhanced hover */
-.chart-container {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.chart-container:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--border-secondary);
-}
-
 /* Zoomed chart container — larger rendering */
 .chart-zoomed .chart-container {
   border: none;
@@ -650,14 +694,15 @@ div[style*="zoom-in"]:hover .zoom-hint {
   transform: none;
 }
 
-/* KPI card enhanced — breathing border glow on hover */
+/* KPI card - fluid hover zoom */
 .kpi-card {
-  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .kpi-card:hover {
-  transform: translateY(-5px);
+  transform: scale(1.05) translateY(-4px);
   box-shadow: var(--shadow-xl);
+  border-color: var(--accent-primary);
 }
 
 .kpi-card:hover::before {

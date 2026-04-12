@@ -145,7 +145,7 @@ export function AIInsightsPanel({ dataset }: AIInsightsPanelProps) {
                             letterSpacing: '0.06em',
                         }}
                     >
-                        Gemini
+                        GPT
                     </span>
                 </h3>
 
