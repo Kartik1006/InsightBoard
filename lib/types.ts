@@ -17,12 +17,26 @@ export type ColumnRole =
   | 'boolean';     // true/false
 
 export type AggregationType = 'count' | 'sum' | 'avg' | 'min' | 'max';
+export type SortMode = 'value-desc' | 'value-asc' | 'alpha-asc' | 'alpha-desc' | 'none';
 
 export interface CustomChartConfig {
   chartType: ChartType;
   xColumn: string;
   yColumn?: string;       // optional — if omitted, uses Count
   aggregation: AggregationType;
+}
+
+/** Enhanced config for multi-column chart builder */
+export interface MultiSeriesChartConfig {
+  chartType: ChartType;
+  xColumn: string;
+  yColumns: string[];       // multiple numeric columns
+  groupByColumn?: string;   // categorical column to split series
+  aggregation: AggregationType;
+  sortMode: SortMode;
+  topN: number;             // 0 = show all
+  stacked: boolean;         // stacked vs grouped (bar charts)
+  customTitle?: string;
 }
 
 export interface ColumnMeta {
@@ -99,6 +113,8 @@ export interface ChartRecommendation {
   purpose: ChartPurpose;
   description?: string; // insight description
   isCustom?: boolean;
+  seriesKeys?: string[];  // for multi-series charts (multiple bars/lines)
+  stacked?: boolean;      // stacked vs grouped mode
 }
 
 export interface FilterOption {

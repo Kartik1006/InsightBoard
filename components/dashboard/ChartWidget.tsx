@@ -135,6 +135,8 @@ export function ChartWidget({ chart, index, onRemove, enableFlip = true }: Chart
     }, [isFlipped, enableFlip, fetchCardInsight]);
 
     const renderChart = () => {
+        const hasMultiSeries = chart.seriesKeys && chart.seriesKeys.length > 0;
+
         switch (chart.type) {
             case 'bar':
             case 'histogram':
@@ -166,15 +168,31 @@ export function ChartWidget({ chart, index, onRemove, enableFlip = true }: Chart
                                 contentStyle={tooltipStyle}
                                 cursor={false}
                             />
-                            <Bar
-                                dataKey={chart.yAxis || 'Count'}
-                                radius={[3, 3, 0, 0]}
-                                animationDuration={800}
-                            >
-                                {chart.data.map((_, i) => (
-                                    <Cell key={i} fill={colors[i % colors.length]} />
-                                ))}
-                            </Bar>
+                            {hasMultiSeries ? (
+                                <>
+                                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '0.6875rem' }} />
+                                    {chart.seriesKeys!.map((key, i) => (
+                                        <Bar
+                                            key={key}
+                                            dataKey={key}
+                                            fill={colors[i % colors.length]}
+                                            radius={[3, 3, 0, 0]}
+                                            animationDuration={800}
+                                            stackId={chart.stacked ? 'stack' : undefined}
+                                        />
+                                    ))}
+                                </>
+                            ) : (
+                                <Bar
+                                    dataKey={chart.yAxis || 'Count'}
+                                    radius={[3, 3, 0, 0]}
+                                    animationDuration={800}
+                                >
+                                    {chart.data.map((_, i) => (
+                                        <Cell key={i} fill={colors[i % colors.length]} />
+                                    ))}
+                                </Bar>
+                            )}
                         </BarChart>
                     </ResponsiveContainer>
                 );
@@ -205,15 +223,33 @@ export function ChartWidget({ chart, index, onRemove, enableFlip = true }: Chart
                                 contentStyle={tooltipStyle}
                                 cursor={{ stroke: 'var(--border-secondary)', strokeDasharray: '4 4' }}
                             />
-                            <Line
-                                type="monotone"
-                                dataKey={chart.yAxis || 'value'}
-                                stroke={colors[0]}
-                                strokeWidth={2}
-                                dot={{ r: 3, fill: colors[0], strokeWidth: 0 }}
-                                activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--bg-card)' }}
-                                animationDuration={1000}
-                            />
+                            {hasMultiSeries ? (
+                                <>
+                                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '0.6875rem' }} />
+                                    {chart.seriesKeys!.map((key, i) => (
+                                        <Line
+                                            key={key}
+                                            type="monotone"
+                                            dataKey={key}
+                                            stroke={colors[i % colors.length]}
+                                            strokeWidth={2}
+                                            dot={{ r: 3, fill: colors[i % colors.length], strokeWidth: 0 }}
+                                            activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--bg-card)' }}
+                                            animationDuration={1000}
+                                        />
+                                    ))}
+                                </>
+                            ) : (
+                                <Line
+                                    type="monotone"
+                                    dataKey={chart.yAxis || 'value'}
+                                    stroke={colors[0]}
+                                    strokeWidth={2}
+                                    dot={{ r: 3, fill: colors[0], strokeWidth: 0 }}
+                                    activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--bg-card)' }}
+                                    animationDuration={1000}
+                                />
+                            )}
                         </LineChart>
                     </ResponsiveContainer>
                 );
@@ -223,10 +259,19 @@ export function ChartWidget({ chart, index, onRemove, enableFlip = true }: Chart
                     <ResponsiveContainer width="100%" height={300}>
                         <AreaChart data={chart.data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                             <defs>
-                                <linearGradient id={`gradient-${chart.id}`} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor={colors[0]} stopOpacity={0.25} />
-                                    <stop offset="100%" stopColor={colors[0]} stopOpacity={0.02} />
-                                </linearGradient>
+                                {hasMultiSeries ? (
+                                    chart.seriesKeys!.map((key, i) => (
+                                        <linearGradient key={key} id={`gradient-${chart.id}-${i}`} x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={colors[i % colors.length]} stopOpacity={0.25} />
+                                            <stop offset="100%" stopColor={colors[i % colors.length]} stopOpacity={0.02} />
+                                        </linearGradient>
+                                    ))
+                                ) : (
+                                    <linearGradient id={`gradient-${chart.id}`} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor={colors[0]} stopOpacity={0.25} />
+                                        <stop offset="100%" stopColor={colors[0]} stopOpacity={0.02} />
+                                    </linearGradient>
+                                )}
                             </defs>
                             <CartesianGrid
                                 strokeDasharray="3 3"
@@ -250,14 +295,32 @@ export function ChartWidget({ chart, index, onRemove, enableFlip = true }: Chart
                                 contentStyle={tooltipStyle}
                                 cursor={{ stroke: 'var(--border-secondary)', strokeDasharray: '4 4' }}
                             />
-                            <Area
-                                type="monotone"
-                                dataKey={chart.yAxis || 'value'}
-                                stroke={colors[0]}
-                                strokeWidth={2}
-                                fill={`url(#gradient-${chart.id})`}
-                                animationDuration={1000}
-                            />
+                            {hasMultiSeries ? (
+                                <>
+                                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '0.6875rem' }} />
+                                    {chart.seriesKeys!.map((key, i) => (
+                                        <Area
+                                            key={key}
+                                            type="monotone"
+                                            dataKey={key}
+                                            stroke={colors[i % colors.length]}
+                                            strokeWidth={2}
+                                            fill={`url(#gradient-${chart.id}-${i})`}
+                                            animationDuration={1000}
+                                            stackId={chart.stacked ? 'stack' : undefined}
+                                        />
+                                    ))}
+                                </>
+                            ) : (
+                                <Area
+                                    type="monotone"
+                                    dataKey={chart.yAxis || 'value'}
+                                    stroke={colors[0]}
+                                    strokeWidth={2}
+                                    fill={`url(#gradient-${chart.id})`}
+                                    animationDuration={1000}
+                                />
+                            )}
                         </AreaChart>
                     </ResponsiveContainer>
                 );

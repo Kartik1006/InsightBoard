@@ -17,6 +17,7 @@ import {
     DataInsight,
     AlertLevel,
     AggregationType,
+    SortMode,
     getCategoricalPalette,
     getSequentialPalette,
 } from './types';
@@ -864,6 +865,237 @@ export function buildCustomChart(
         purpose,
         description: `Custom chart: ${chartType}`,
     };
+}
+
+// ── Advanced Multi-Series Chart Builder ──────────────────────
+// Supports multiple Y-axis columns, group-by, topN, sort, stacked/grouped
+
+export function buildAdvancedCustomChart(
+    dataset: DataSet,
+    xColumn: string,
+    yColumns: string[],
+    groupByColumn: string | null,
+    chartType: ChartType,
+    aggregation: AggregationType,
+    sortMode: SortMode,
+    topN: number,
+    stacked: boolean,
+    customTitle: string | null,
+    isDark: boolean
+): ChartRecommendation {
+    const palette = getCategoricalPalette(isDark);
+    let data: Record<string, unknown>[];
+    let seriesKeys: string[] | undefined;
+    let yAxis: string | undefined;
+
+    if (groupByColumn) {
+        // Group-by mode: cross-tabulate xColumn × groupByColumn
+        const measureCol = yColumns.length > 0 ? yColumns[0] : null;
+        const result = buildGroupedData(dataset.rows, xColumn, groupByColumn, measureCol, aggregation);
+        data = result.data;
+        seriesKeys = result.series;
+        yAxis = measureCol || 'Count';
+    } else if (yColumns.length > 1) {
+        // Multi-Y mode: aggregate each yColumn by xColumn
+        data = buildMultiYData(dataset.rows, xColumn, yColumns, aggregation);
+        seriesKeys = yColumns;
+        yAxis = yColumns.join(', ');
+    } else if (yColumns.length === 1 && aggregation !== 'count') {
+        // Single Y column with aggregation
+        data = aggregateByCategory(dataset.rows, xColumn, yColumns[0], aggregation);
+        yAxis = yColumns[0];
+    } else {
+        // Count-based
+        data = countByCategory(dataset.rows, xColumn, 100);
+        yAxis = 'Count';
+        if (chartType !== 'donut' && chartType !== 'pie') {
+            data = data.map((d) => ({ [xColumn]: d.name, Count: d.value }));
+        }
+    }
+
+    // Sort
+    if (sortMode !== 'none' && data.length > 0 && chartType !== 'donut' && chartType !== 'pie') {
+        const sortKey = seriesKeys ? seriesKeys[0] : (yColumns.length > 0 && aggregation !== 'count' ? yColumns[0] : 'Count');
+        switch (sortMode) {
+            case 'value-desc':
+                data.sort((a, b) => (Number(b[sortKey]) || 0) - (Number(a[sortKey]) || 0));
+                break;
+            case 'value-asc':
+                data.sort((a, b) => (Number(a[sortKey]) || 0) - (Number(b[sortKey]) || 0));
+                break;
+            case 'alpha-asc':
+                data.sort((a, b) => String(a[xColumn] || '').localeCompare(String(b[xColumn] || '')));
+                break;
+            case 'alpha-desc':
+                data.sort((a, b) => String(b[xColumn] || '').localeCompare(String(a[xColumn] || '')));
+                break;
+        }
+    }
+
+    // Top-N
+    if (topN > 0 && data.length > topN) {
+        data = data.slice(0, topN);
+    }
+
+    let purpose: ChartPurpose = 'comparison';
+    if (chartType === 'donut' || chartType === 'pie') purpose = 'part-to-whole';
+    if (chartType === 'scatter') purpose = 'correlation';
+    if (chartType === 'area' || chartType === 'line') purpose = 'trend';
+
+    const autoTitle = customTitle || generateAutoTitle(xColumn, yColumns, groupByColumn, aggregation, chartType);
+
+    return {
+        id: generateId(),
+        type: chartType,
+        title: autoTitle,
+        xAxis: xColumn,
+        yAxis: chartType === 'donut' || chartType === 'pie' ? undefined : yAxis,
+        data,
+        colorScheme: palette,
+        priority: 100,
+        purpose,
+        description: `Custom chart: ${chartType}`,
+        isCustom: true,
+        seriesKeys,
+        stacked,
+    };
+}
+
+function generateAutoTitle(
+    xCol: string,
+    yCols: string[],
+    groupBy: string | null,
+    agg: AggregationType,
+    chartType: ChartType,
+): string {
+    if (yCols.length === 0 || agg === 'count') {
+        return groupBy ? `${xCol} Count by ${groupBy}` : `${xCol} Count`;
+    }
+    const yLabel = yCols.length > 2 ? `${yCols.length} Measures` : yCols.join(' & ');
+    const aggLabel = agg.charAt(0).toUpperCase() + agg.slice(1);
+    const base = `${aggLabel} of ${yLabel} by ${xCol}`;
+    return groupBy ? `${base} (grouped by ${groupBy})` : base;
+}
+
+function buildMultiYData(
+    rows: Record<string, unknown>[],
+    xCol: string,
+    yCols: string[],
+    agg: AggregationType
+): Record<string, unknown>[] {
+    // Group by xCol, aggregate each yCol
+    const grouped = new Map<string, Record<string, { sum: number; count: number; min: number; max: number }>>();
+
+    for (const row of rows) {
+        const xVal = row[xCol];
+        if (xVal == null) continue;
+        const key = String(xVal);
+        if (!grouped.has(key)) {
+            const entry: Record<string, { sum: number; count: number; min: number; max: number }> = {};
+            for (const y of yCols) entry[y] = { sum: 0, count: 0, min: Infinity, max: -Infinity };
+            grouped.set(key, entry);
+        }
+        const entry = grouped.get(key)!;
+        for (const y of yCols) {
+            const v = Number(row[y]);
+            if (!isNaN(v)) {
+                entry[y].sum += v;
+                entry[y].count++;
+                entry[y].min = Math.min(entry[y].min, v);
+                entry[y].max = Math.max(entry[y].max, v);
+            }
+        }
+    }
+
+    return Array.from(grouped.entries())
+        .map(([xVal, entry]) => {
+            const result: Record<string, unknown> = { [xCol]: xVal };
+            for (const y of yCols) {
+                const e = entry[y];
+                switch (agg) {
+                    case 'avg': result[y] = e.count > 0 ? Math.round((e.sum / e.count) * 100) / 100 : 0; break;
+                    case 'min': result[y] = e.min === Infinity ? 0 : e.min; break;
+                    case 'max': result[y] = e.max === -Infinity ? 0 : e.max; break;
+                    case 'count': result[y] = e.count; break;
+                    default: result[y] = Math.round(e.sum * 100) / 100;
+                }
+            }
+            return result;
+        });
+}
+
+function buildGroupedData(
+    rows: Record<string, unknown>[],
+    xCol: string,
+    groupCol: string,
+    measureCol: string | null,
+    agg: AggregationType
+): { data: Record<string, unknown>[]; series: string[] } {
+    // Cross-tabulate: xCol × groupCol
+    const grouped = new Map<string, Map<string, { sum: number; count: number; min: number; max: number }>>();
+    const allGroups = new Set<string>();
+
+    for (const row of rows) {
+        const xVal = row[xCol];
+        const gVal = row[groupCol];
+        if (xVal == null || gVal == null) continue;
+        const xKey = String(xVal);
+        const gKey = String(gVal);
+        allGroups.add(gKey);
+
+        if (!grouped.has(xKey)) grouped.set(xKey, new Map());
+        const inner = grouped.get(xKey)!;
+        if (!inner.has(gKey)) inner.set(gKey, { sum: 0, count: 0, min: Infinity, max: -Infinity });
+        const entry = inner.get(gKey)!;
+
+        if (measureCol) {
+            const v = Number(row[measureCol]);
+            if (!isNaN(v)) {
+                entry.sum += v;
+                entry.count++;
+                entry.min = Math.min(entry.min, v);
+                entry.max = Math.max(entry.max, v);
+            }
+        } else {
+            entry.count++;
+        }
+    }
+
+    // Limit groups to top 8 by total count
+    const groupTotals = new Map<string, number>();
+    for (const inner of grouped.values()) {
+        for (const [g, e] of inner) {
+            groupTotals.set(g, (groupTotals.get(g) || 0) + e.count);
+        }
+    }
+    const topGroups = Array.from(groupTotals.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8)
+        .map(([g]) => g);
+
+    const series = topGroups;
+    const data = Array.from(grouped.entries())
+        .map(([xVal, inner]) => {
+            const entry: Record<string, unknown> = { [xCol]: xVal };
+            for (const g of series) {
+                const e = inner.get(g);
+                if (!e) {
+                    entry[g] = 0;
+                } else if (!measureCol || agg === 'count') {
+                    entry[g] = e.count;
+                } else {
+                    switch (agg) {
+                        case 'avg': entry[g] = e.count > 0 ? Math.round((e.sum / e.count) * 100) / 100 : 0; break;
+                        case 'min': entry[g] = e.min === Infinity ? 0 : e.min; break;
+                        case 'max': entry[g] = e.max === -Infinity ? 0 : e.max; break;
+                        default: entry[g] = Math.round(e.sum * 100) / 100;
+                    }
+                }
+            }
+            return entry;
+        });
+
+    return { data, series };
 }
 
 // ── Apply filters to data ────────────────────────────────────

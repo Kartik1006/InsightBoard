@@ -780,3 +780,135 @@ body {
 .btn-secondary:active {
   transform: translateY(0) scale(0.98);
 }
+
+/* ============================================================
+   SQL Query Panel
+   ============================================================ */
+
+.nl-query-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.sql-editor {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
+  tab-size: 2;
+}
+
+.sql-editor:focus {
+  box-shadow: inset 0 0 0 2px var(--accent-glow);
+}
+
+/* SQL results alternating rows */
+.data-table tbody tr:nth-child(even) td {
+  background: var(--bg-card-hover);
+}
+
+.data-table tbody tr:nth-child(even):hover td {
+  background: var(--bg-elevated);
+}
+
+/* ============================================================
+   Tab Navigation Pills
+   ============================================================ */
+
+.tab-pill {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-pill:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.tab-pill.active {
+  color: var(--text-primary);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+}
+
+/* ============================================================
+   Data Explorer Enhancements
+   ============================================================ */
+
+.data-table thead th {
+  transition: background 0.15s ease;
+}
+
+.data-table thead th:hover {
+  background: var(--accent-glow);
+}
+
+/* ============================================================
+   Range Slider Styling
+   ============================================================ */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border-secondary);
+  border-radius: 2px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 0 0 1px var(--accent-primary);
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  border: 2px solid var(--bg-card);
+}
+
+/* ============================================================
+   Input field global styling
+   ============================================================ */
+
+input[type="text"]::placeholder {
+  color: var(--text-muted);
+}
+
+.dark input[type="text"],
+.dark textarea {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+.dark input[type="text"]:focus,
+.dark textarea:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ============================================================
+   Multi-series legend
+   ============================================================ */
+
+.recharts-legend-wrapper {
+  padding-top: 8px !important;
+}
+
+.dark .recharts-legend-item-text {
+  color: var(--text-secondary) !important;
+}

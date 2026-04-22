@@ -1,24 +1,27 @@
 # InsightBoard
 
 <p align="center">
-  A modern, interactive, and AI-powered data visualization dashboard built with Next.js, React, and Tailwind CSS.
+  A modern, AI-powered data analytics platform — a simpler, more intuitive alternative to PowerBI and Tableau.<br/>
+  Built with Next.js, React, Recharts, and OpenRouter AI.
 </p>
 
 ## 🚀 Overview
 
-**InsightBoard** is a premium, highly interactive dashboard application designed to simplify data analysis and visualization. Built primarily for analyzing tabular datasets (like sales, CRM data, or financial records), it allows users to effortlessly upload CSV or Excel files, clean and transform their data on the fly, and visualize insights through customizable charts and KPI cards. 
+**InsightBoard** is a premium, full-featured data analytics dashboard that transforms raw CSV/Excel data into interactive visualizations, AI-driven insights, and SQL-powered queries — all without writing a single line of code.
 
-With a focus on performance, aesthetics, and user experience, InsightBoard integrates modern UI paradigms like drag-and-drop customization, smooth animations, and AI-driven insights to help users make data-driven decisions faster.
+Upload any dataset, and InsightBoard automatically generates KPI cards, smart chart recommendations, and actionable insights. Go deeper with the **Natural Language SQL Engine** — ask questions in plain English and get instant answers. Build complex multi-series charts with the **Advanced Chart Builder**, or explore your data row-by-row with the **Data Explorer**.
 
 Live Demo: [https://insight-board-omega.vercel.app/](https://insight-board-omega.vercel.app/)
 
 ## ✨ Why It Was Made
 
-Data analysis tools are often either too complex (requiring specialized coding knowledge) or too rigid (lacking deep customization). InsightBoard bridges this gap by providing a no-code, drag-and-drop interface paired with the power of advanced data processing and AI capabilities. It was created to:
+Data analysis tools are often either too complex (requiring specialized coding knowledge) or too rigid (lacking deep customization). InsightBoard bridges this gap by providing a no-code, drag-and-drop interface paired with the power of advanced data processing, AI capabilities, and SQL querying. It was created to:
+
 - **Democratize Data Analysis**: Make complex datasets understandable through an intuitive user interface.
 - **Eliminate Busywork**: Automate tedious data cleaning tasks with built-in preprocessing tools.
-- **Enhance Visibility**: Provide dynamic, real-time visual feedback on critical metrics.
-- **Accelerate Decision Making**: Leverage AI to automatically surface hidden trends and actionable insights, reducing manual analytical effort.
+- **Enable Natural Language Querying**: Ask questions about your data in plain English — no SQL knowledge required.
+- **Deliver Advanced Visualizations**: Build multi-series, grouped, and stacked charts that rival PowerBI's capabilities.
+- **Accelerate Decision Making**: Leverage AI to automatically surface hidden trends and actionable insights.
 
 ## 🎯 Use Cases & Applications
 
@@ -31,37 +34,95 @@ InsightBoard is versatile and can be applied across various domains and professi
 
 ## 🛠 Features
 
-- **File Upload & Parsing**: Seamlessly drag and drop CSV or Excel datasets. The app utilizes `papaparse` and `xlsx` for robust, high-performance client-side parsing.
-- **Automated Data Cleaning**: Built-in utilities to instantly handle messy data—drop empty rows, remove duplicates, trim whitespace, and standardize headers with a single click.
-- **Interactive Dashboards**: Construct custom dashboard layouts using intuitive drag-and-drop functionality built with `@dnd-kit`.
-- **Advanced Visualizations**: Beautiful, responsive charts powered by `recharts`. Includes interactive features like **Chart Zoom** for granular, deep-dive analysis.
-- **AI-Powered Insights**: Integrates the **Gemini AI API** to automatically analyze your dataset and provide smart, context-aware recommendations directly alongside your charts.
-- **Premium UI/UX**: Designed with a sleek Light/Dark mode toggle, engaging micro-animations using `framer-motion`, and beautifully crafted styling via Tailwind CSS v4.
-- **Real-time Filtering**: Drill down into specific data points securely and quickly with dynamically generated filters.
+### Core Dashboard
+- **File Upload & Parsing**: Drag and drop CSV or Excel datasets. Uses `papaparse` and `xlsx` for robust, high-performance client-side parsing.
+- **Automated Data Cleaning**: Drop empty rows, remove duplicates, trim whitespace, and standardize headers with a single click.
+- **Interactive Dashboards**: Drag-and-drop chart reordering with `@dnd-kit`. KPI cards, filters, and chart widgets auto-generated from your data.
+- **Advanced Visualizations**: 7 chart types (Bar, Line, Area, Donut/Pie, Scatter, Radar, Step) powered by `recharts` with interactive zoom capabilities.
+- **AI-Powered Insights**: Integrates OpenRouter AI (GPT models) to automatically analyze your dataset and provide smart, context-aware insights — both globally and per-chart (flip any chart to see its AI analysis).
+- **Premium UI/UX**: Sleek dark/light mode, micro-animations via `framer-motion`, and a Carbon-inspired design system.
+- **Real-time Filtering**: Drill down with dynamically generated category and date-range filters.
+
+### 🗣️ Natural Language SQL Query Engine *(New)*
+- **Ask in Plain English**: Type questions like *"Show total revenue by country"* or *"What are the top 10 products by sales?"*
+- **AI-Powered SQL Generation**: OpenRouter AI converts your question to a valid SQL query, tuned for AlaSQL compatibility.
+- **Client-Side Execution**: SQL runs entirely in-browser using [AlaSQL](https://github.com/AlaSQL/alasql) — no server database needed.
+- **Editable SQL**: View, edit, and re-run the generated SQL before executing.
+- **Auto-Chart Results**: Query results automatically visualized as charts when applicable.
+- **Query History**: Re-run past queries with a single click.
+- **Safety First**: Only `SELECT` queries are allowed — no data mutation possible.
+
+### 📊 Advanced Chart Builder *(Enhanced)*
+- **Multi-Y Axis Columns**: Select 2+ numeric columns to overlay on the same chart as multiple series.
+- **Group-By / Color-By**: Add a categorical column to split data into colored series (e.g., revenue by country, grouped by product type).
+- **Sort Control**: Sort by value (ascending/descending) or alphabetically.
+- **Top-N Limiter**: Slider to show the top 5, 10, 15, 20, or 50 records.
+- **Stacked / Grouped Toggle**: For bar and area charts, switch between stacked and side-by-side layouts.
+- **Custom Chart Titles**: Name your charts however you like.
+- **Live Preview**: See your chart before adding it to the dashboard.
+
+### 📋 Data Explorer *(New)*
+- **Full Table View**: Spreadsheet-like view of your entire dataset with row numbers.
+- **Sortable Columns**: Click any column header to sort ascending/descending.
+- **Global Search**: Search across all columns simultaneously.
+- **Column Stats on Hover**: See type, unique count, null count, min, max, and mean for any column.
+- **Pagination**: Navigate large datasets with full pagination controls.
+
+### 🗂️ Tab-Based Navigation *(New)*
+- **Dashboard Tab**: KPIs, charts, AI insights, custom chart builder — the full analytics view.
+- **Data Explorer Tab**: Sortable, searchable, paginated table view of your raw data.
+- **SQL Query Tab**: Natural language query interface with results table and auto-charting.
 
 ## 💻 Technical Specifications
 
 ### Tech Stack
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
-- **Library**: [React 19](https://react.dev/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & CSS Modules
-- **State Management**: Zustand (`hooks/useDataStore.tsx` & Context API)
-- **Charting**: [Recharts](https://recharts.org/)
-- **Animations & Interactions**: [Framer Motion](https://www.framer.com/motion/) & [dnd-kit](https://dndkit.com/)
-- **Data Processing**: [PapaParse](https://www.papaparse.com/) (CSV) & [SheetJS / xlsx](https://sheetjs.com/) (Excel)
-- **Icons**: [Lucide React](https://lucide.dev/)
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | [Next.js 16](https://nextjs.org/) (App Router, Turbopack) |
+| **Library** | [React 19](https://react.dev/) |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) & Custom CSS Design System |
+| **State Management** | React Context API (`hooks/useDataStore.tsx`) |
+| **Charting** | [Recharts](https://recharts.org/) (multi-series, stacked, grouped) |
+| **Animations** | [Framer Motion](https://www.framer.com/motion/) |
+| **Drag & Drop** | [dnd-kit](https://dndkit.com/) |
+| **Data Parsing** | [PapaParse](https://www.papaparse.com/) (CSV) & [SheetJS](https://sheetjs.com/) (Excel) |
+| **SQL Engine** | [AlaSQL](https://github.com/AlaSQL/alasql) (client-side in-memory SQL) |
+| **AI Integration** | [OpenRouter API](https://openrouter.ai/) (GPT models for insights & NL→SQL) |
+| **Icons** | [Lucide React](https://lucide.dev/) |
 
 ### Project Architecture
 ```text
 InsightBoard/
-├── app/                  # Next.js App Router (pages, layout, globals.css)
-├── components/           # Modular React components
-│   ├── cleaning/         # Data upload, preview, and cleaning interfaces
-│   ├── dashboard/        # Charts, KPI widgets, Filter panels, Custom builder
-│   └── layout/           # App shell, Navbar, Theme toggle
-├── hooks/                # Custom React hooks & global state definitions
-├── lib/                  # Core business logic (parser, cleaner, analyzer, types)
-└── public/               # Static assets & sample datasets
+├── app/                      # Next.js App Router
+│   ├── api/
+│   │   ├── insights/         # AI insights API route
+│   │   └── nl-to-sql/        # Natural language → SQL API route
+│   ├── layout.tsx            # Root layout with providers
+│   ├── page.tsx              # Main page (upload → preview → dashboard)
+│   └── globals.css           # Design system & component styles
+├── components/
+│   ├── cleaning/             # Data cleaning panel
+│   ├── dashboard/
+│   │   ├── AIInsightsPanel   # Global AI insights
+│   │   ├── ChartWidget       # Chart rendering (multi-series support)
+│   │   ├── ChartZoom         # Zoom/drill-down modal
+│   │   ├── CustomChartBuilder# Advanced chart builder (multi-column)
+│   │   ├── DashboardView     # Main dashboard with tab navigation
+│   │   ├── DataExplorer      # Sortable/searchable data table
+│   │   ├── FilterPanel       # Dynamic data filters
+│   │   ├── KPICard           # KPI metric cards
+│   │   └── NLQueryPanel      # Natural language SQL query interface
+│   ├── layout/               # Header, theme toggle
+│   └── upload/               # File upload & data preview
+├── hooks/                    # useDataStore (global state)
+├── lib/
+│   ├── analyzer.ts           # Chart engine (adaptive + advanced custom)
+│   ├── cleaner.ts            # Data cleaning utilities
+│   ├── parser.ts             # CSV/Excel parser
+│   ├── sqlEngine.ts          # AlaSQL wrapper (client-side SQL)
+│   ├── types.ts              # TypeScript type definitions
+│   └── utils.ts              # Formatting & helper functions
+└── public/                   # Sample datasets
 ```
 
 ## ⚙️ Getting Started
@@ -74,8 +135,8 @@ InsightBoard/
 
 1. **Clone the repository:**
    ```bash
-   git clone <your-repo-url>
-   cd dashboard1
+   git clone https://github.com/Kartik1006/InsightBoard.git
+   cd InsightBoard
    ```
 
 2. **Install dependencies:**
@@ -84,10 +145,10 @@ InsightBoard/
    ```
 
 3. **Set up Environment Variables:**
-   Create a `.env.local` file in the root directory and add your API keys (e.g., for AI features):
+   Create a `.env.local` file in the root directory:
    ```env
-   # Required for the generative AI insights panel
-   NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
+   # Required for AI insights and NL→SQL features
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
    ```
 
 4. **Run the development server:**
@@ -96,7 +157,7 @@ InsightBoard/
    ```
 
 5. **Open the Application:**
-   Navigate to [http://localhost:3000](http://localhost:3000) in your browser. Feel free to upload the included sample datasets from the `/public` directory to see the dashboard in action.
+   Navigate to [http://localhost:3000](http://localhost:3000). Upload the included sample datasets from `/public` to see the dashboard in action.
 
 ## 🤝 Contributing
 
@@ -112,4 +173,4 @@ Contributions are always welcome! If you'd like to improve InsightBoard:
 This project is open-source. Please add a license of your choice (e.g. MIT) if desired.
 
 ---
-*Built to make data analysis visually stunning, intuitive, and highly accessible.*
+*Built to make data analysis visually stunning, intuitive, and highly accessible — a simpler PowerBI for everyone.*

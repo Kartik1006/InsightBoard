@@ -9,12 +9,22 @@ import { ChartWidget } from './ChartWidget';
 import { FilterPanel } from './FilterPanel';
 import { CustomChartBuilder } from './CustomChartBuilder';
 import { AIInsightsPanel } from './AIInsightsPanel';
+import { NLQueryPanel } from './NLQueryPanel';
+import { DataExplorer } from './DataExplorer';
 
 import { motion } from 'framer-motion';
-import { BarChart3, FileText, Lightbulb, TrendingUp, AlertTriangle, PieChart, GitBranch } from 'lucide-react';
+import { BarChart3, FileText, Lightbulb, TrendingUp, AlertTriangle, PieChart, GitBranch, Database, Table2, LayoutDashboard } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+
+type DashboardTab = 'dashboard' | 'explorer' | 'sql';
+
+const TAB_CONFIG: { id: DashboardTab; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'explorer', label: 'Data Explorer', icon: Table2 },
+    { id: 'sql', label: 'SQL Query', icon: Database },
+];
 
 const insightIcons: Record<string, React.ComponentType<{ size?: number; style?: React.CSSProperties }>> = {
     trend: TrendingUp,
@@ -72,6 +82,7 @@ export function DashboardView() {
     const isDark = theme === 'dark';
     const { dashboardConfig, cleanedDataset } = state;
 
+    const [activeTab, setActiveTab] = useState<DashboardTab>('dashboard');
     const [hiddenChartIds, setHiddenChartIds] = useState<Set<string>>(new Set());
     const [customCharts, setCustomCharts] = useState<ChartRecommendation[]>([]);
 
@@ -132,15 +143,16 @@ export function DashboardView() {
             <FilterPanel filters={filters} onFiltersChange={handleFiltersChange} />
 
             <main style={{ padding: '2rem 3rem', maxWidth: '1800px', margin: '0 auto', width: '100%' }}>
-                {/* File info bar */}
+                {/* File info bar + Tab Navigation */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="info-bar-glow"
                     style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        marginBottom: '2rem', padding: '1rem 1.5rem', borderRadius: 'var(--radius-full)',
-                        background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)'
+                        marginBottom: '1.5rem', padding: '0.625rem 1rem', borderRadius: 'var(--radius-full)',
+                        background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)',
+                        flexWrap: 'wrap', gap: '0.75rem',
                     }}
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -148,69 +160,139 @@ export function DashboardView() {
                         <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>{cleanedDataset.fileName}</span>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{cleanedDataset.rowCount.toLocaleString()} rows × {cleanedDataset.columnCount} columns</span>
                     </div>
+
+                    {/* Tab Navigation */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '0.25rem',
+                        padding: '0.25rem',
+                        background: 'var(--bg-card-hover)',
+                        borderRadius: 'var(--radius-full)',
+                    }}>
+                        {TAB_CONFIG.map(tab => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.375rem',
+                                        padding: '0.375rem 0.875rem',
+                                        borderRadius: 'var(--radius-full)',
+                                        border: 'none',
+                                        background: isActive ? 'var(--bg-card)' : 'transparent',
+                                        color: isActive ? 'var(--text-primary)' : 'var(--text-muted)',
+                                        fontSize: '0.75rem',
+                                        fontWeight: isActive ? 700 : 500,
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s ease',
+                                        boxShadow: isActive ? 'var(--shadow-sm)' : 'none',
+                                    }}
+                                >
+                                    <Icon size={13} />
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </motion.div>
 
-                {/* AI & Rule Insights */}
-                <AIInsightsPanel dataset={cleanedDataset} />
-                {insights.length > 0 && (
+                {/* Tab Content */}
+                {activeTab === 'dashboard' && (
                     <motion.div
+                        key="dashboard"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        style={{ marginBottom: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-lg)', padding: '1.25rem 1.5rem' }}
+                        transition={{ duration: 0.2 }}
                     >
-                        <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                            <Lightbulb size={15} style={{ color: '#f1c21b' }} /> Key Insights
-                        </h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.5rem' }}>
-                            {insights.map((insight) => {
-                                const Icon = insightIcons[insight.category] || Lightbulb;
-                                const alert = insightAlertStyles[insight.alertLevel] || insightAlertStyles.neutral;
-                                return (
-                                    <div
-                                        key={insight.id}
-                                        style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', padding: '0.625rem 0.75rem', background: alert.bg, borderLeft: `3px solid ${alert.border}`, borderRadius: '4px', fontSize: '0.75rem', lineHeight: 1.5, color: 'var(--text-primary)' }}
-                                    >
-                                        <Icon size={14} style={{ color: alert.color, flexShrink: 0, marginTop: 2 }} />
-                                        <span>{insight.text}</span>
-                                    </div>
-                                );
-                            })}
+                        {/* AI & Rule Insights */}
+                        <AIInsightsPanel dataset={cleanedDataset} />
+                        {insights.length > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                style={{ marginBottom: '1.5rem', background: 'var(--bg-card)', border: '1px solid var(--border-primary)', borderRadius: 'var(--radius-lg)', padding: '1.25rem 1.5rem' }}
+                            >
+                                <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                                    <Lightbulb size={15} style={{ color: '#f1c21b' }} /> Key Insights
+                                </h3>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.5rem' }}>
+                                    {insights.map((insight) => {
+                                        const Icon = insightIcons[insight.category] || Lightbulb;
+                                        const alert = insightAlertStyles[insight.alertLevel] || insightAlertStyles.neutral;
+                                        return (
+                                            <div
+                                                key={insight.id}
+                                                style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', padding: '0.625rem 0.75rem', background: alert.bg, borderLeft: `3px solid ${alert.border}`, borderRadius: '4px', fontSize: '0.75rem', lineHeight: 1.5, color: 'var(--text-primary)' }}
+                                            >
+                                                <Icon size={14} style={{ color: alert.color, flexShrink: 0, marginTop: 2 }} />
+                                                <span>{insight.text}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Grid: KPIs */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
+                            {kpis.map((kpi, i) => (
+                                <motion.div key={kpi.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }} style={{ gridColumn: `span ${kpis.length <= 3 ? 4 : 3}` }}>
+                                    <KPICard kpi={kpi} index={i} />
+                                </motion.div>
+                            ))}
                         </div>
+
+                        {/* Grid: Sortable Charts */}
+                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                            <SortableContext items={sortedRenderCharts.map(c => c.id)} strategy={rectSortingStrategy}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
+                                    {sortedRenderCharts.map((chart, i) => (
+                                        <SortableChartItem 
+                                            key={chart.id} 
+                                            chart={chart} 
+                                            index={i} 
+                                            onRemove={chart.isCustom ? handleRemoveCustomChart : handleRemoveChart} 
+                                        />
+                                    ))}
+                                </div>
+                            </SortableContext>
+                        </DndContext>
+
+                        <CustomChartBuilder customCharts={customCharts} onAddChart={handleAddCustomChart} onRemoveChart={handleRemoveCustomChart} />
+
+                        {sortedRenderCharts.length === 0 && kpis.length === 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>
+                                <BarChart3 size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                <p style={{ fontSize: '1rem', fontWeight: 500 }}>No visualizations available. Try creating a custom chart below.</p>
+                            </div>
+                        )}
                     </motion.div>
                 )}
 
-                {/* Grid: KPIs */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
-                    {kpis.map((kpi, i) => (
-                        <motion.div key={kpi.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }} style={{ gridColumn: `span ${kpis.length <= 3 ? 4 : 3}` }}>
-                            <KPICard kpi={kpi} index={i} />
-                        </motion.div>
-                    ))}
-                </div>
+                {activeTab === 'explorer' && (
+                    <motion.div
+                        key="explorer"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <DataExplorer />
+                    </motion.div>
+                )}
 
-                {/* Grid: Sortable Charts */}
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={sortedRenderCharts.map(c => c.id)} strategy={rectSortingStrategy}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
-                            {sortedRenderCharts.map((chart, i) => (
-                                <SortableChartItem 
-                                    key={chart.id} 
-                                    chart={chart} 
-                                    index={i} 
-                                    onRemove={chart.isCustom ? handleRemoveCustomChart : handleRemoveChart} 
-                                />
-                            ))}
-                        </div>
-                    </SortableContext>
-                </DndContext>
-
-                <CustomChartBuilder customCharts={customCharts} onAddChart={handleAddCustomChart} onRemoveChart={handleRemoveCustomChart} />
-
-                {sortedRenderCharts.length === 0 && kpis.length === 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>
-                        <BarChart3 size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                        <p style={{ fontSize: '1rem', fontWeight: 500 }}>No visualizations available. Try creating a custom chart below.</p>
-                    </div>
+                {activeTab === 'sql' && (
+                    <motion.div
+                        key="sql"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <NLQueryPanel />
+                    </motion.div>
                 )}
             </main>
         </div>
