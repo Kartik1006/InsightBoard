@@ -125,3 +125,45 @@ export function clamp(value: number, min: number, max: number): number {
 export function cn(...classes: (string | undefined | false | null)[]): string {
     return classes.filter(Boolean).join(' ');
 }
+
+/**
+ * Download a dataset as a CSV file.
+ * Properly escapes values containing commas, quotes, or newlines.
+ */
+export function downloadDatasetAsCSV(
+    columns: { name: string }[],
+    rows: Record<string, unknown>[],
+    originalFileName: string
+): void {
+    const escapeCSV = (val: unknown): string => {
+        if (val === null || val === undefined) return '';
+        const str = String(val);
+        // Wrap in quotes if contains comma, quote, or newline
+        if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+            return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+    };
+
+    const header = columns.map((c) => escapeCSV(c.name)).join(',');
+    const body = rows.map((row) =>
+        columns.map((c) => escapeCSV(row[c.name])).join(',')
+    ).join('\n');
+
+    const csvContent = header + '\n' + body;
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    // Derive filename: strip extension, add _cleaned, add .csv
+    const baseName = originalFileName.replace(/\.[^.]+$/, '');
+    const downloadName = `${baseName}_cleaned.csv`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = downloadName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}

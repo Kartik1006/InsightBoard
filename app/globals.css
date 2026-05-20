@@ -912,3 +912,266 @@ input[type="text"]::placeholder {
 .dark .recharts-legend-item-text {
   color: var(--text-secondary) !important;
 }
+
+/* ============================================================
+   Responsive Grid Classes (desktop defaults)
+   ============================================================ */
+
+.dashboard-main {
+  padding: 2rem 3rem;
+}
+
+.kpi-grid {
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.kpi-grid-item {
+  grid-column: span 3;
+}
+
+.chart-grid {
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.chart-grid-lg {
+  grid-column: span 6;
+}
+
+.chart-grid-sm {
+  grid-column: span 4;
+}
+
+.insights-grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+/* ============================================================
+   Filter Panel — responsive base
+   ============================================================ */
+
+.filter-panel-mobile-toggle {
+  display: none;
+}
+
+/* ============================================================
+   Tablet / Phone Landscape — max-width: 768px
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Header */
+  .app-header {
+    height: auto !important;
+    min-height: 56px;
+    padding: 0.5rem 1rem !important;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .header-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 0.125rem !important;
+    padding-bottom: 0.25rem;
+  }
+
+  .header-step-label {
+    display: none;
+  }
+
+  /* Filter panel */
+  .filter-panel-container {
+    top: 56px !important;
+    padding: 0.5rem 1rem !important;
+    gap: 1rem !important;
+  }
+
+  /* Dashboard main */
+  .dashboard-main {
+    padding: 1rem !important;
+  }
+
+  /* Info bar — stack */
+  .dashboard-info-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+    border-radius: var(--radius-lg) !important;
+    padding: 0.75rem !important;
+  }
+
+  /* KPI grid — 2 columns */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .kpi-grid-item {
+    grid-column: span 1 !important;
+  }
+
+  /* Chart grid — single column */
+  .chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chart-grid-lg,
+  .chart-grid-sm {
+    grid-column: span 1 !important;
+  }
+
+  /* Insights grid */
+  .insights-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* KPI card adjustments */
+  .kpi-card {
+    padding: 1rem;
+  }
+
+  .kpi-card:hover {
+    transform: none;
+  }
+
+  /* Chart container adjustments */
+  .chart-container {
+    padding: 1rem;
+  }
+
+  .chart-container:hover {
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Disable card flip hover zoom on mobile */
+  .card-flip-wrapper:hover .card-front .chart-container {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Upload zone */
+  .upload-zone {
+    padding: 2rem 1rem;
+  }
+
+  /* Cleaning panel */
+  .cleaning-cta-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .cleaning-cta-row .btn-primary,
+  .cleaning-cta-row .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Data table wrapper for horizontal scroll */
+  .data-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Custom chart builder grid */
+  .filter-select {
+    font-size: 0.875rem;
+    padding: 0.625rem 0.75rem;
+  }
+
+  /* Buttons — larger touch targets */
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    font-size: 0.875rem;
+  }
+
+  .btn-icon {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Flip hint — always hidden on touch */
+  .flip-hint {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   Phone Portrait — max-width: 480px
+   ============================================================ */
+
+@media (max-width: 480px) {
+  /* Dashboard main */
+  .dashboard-main {
+    padding: 0.75rem !important;
+  }
+
+  /* Header */
+  .app-header {
+    padding: 0.375rem 0.75rem !important;
+  }
+
+  /* KPI grid — still 2 columns but tighter */
+  .kpi-grid {
+    gap: 0.75rem !important;
+  }
+
+  .kpi-card {
+    padding: 0.75rem;
+  }
+
+  /* Chart grid — tighter gap */
+  .chart-grid {
+    gap: 0.75rem !important;
+  }
+
+  /* Upload zone — compact */
+  .upload-zone {
+    padding: 2rem 0.75rem;
+  }
+
+  /* Presets grid — single column */
+  .upload-zone + div {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Filter panel — more compact */
+  .filter-select {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ============================================================
+   Touch Device Overrides
+   ============================================================ */
+
+@media (hover: none) {
+  /* Disable hover-dependent effects on touch devices */
+  .kpi-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    border-color: var(--border-primary);
+  }
+
+  .card-flip-wrapper:hover .card-front .chart-container {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    border-color: var(--border-primary);
+  }
+
+  .flip-hint {
+    display: none !important;
+  }
+
+  .btn-primary:hover {
+    transform: none;
+  }
+
+  .btn-secondary:hover {
+    transform: none;
+  }
+
+  .glass-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--glass-border);
+  }
+}

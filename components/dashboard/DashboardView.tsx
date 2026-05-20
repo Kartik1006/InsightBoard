@@ -13,7 +13,8 @@ import { NLQueryPanel } from './NLQueryPanel';
 import { DataExplorer } from './DataExplorer';
 
 import { motion } from 'framer-motion';
-import { BarChart3, FileText, Lightbulb, TrendingUp, AlertTriangle, PieChart, GitBranch, Database, Table2, LayoutDashboard } from 'lucide-react';
+import { BarChart3, FileText, Lightbulb, TrendingUp, AlertTriangle, PieChart, GitBranch, Database, Table2, LayoutDashboard, Download } from 'lucide-react';
+import { downloadDatasetAsCSV } from '@/lib/utils';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -47,14 +48,14 @@ function SortableChartItem({ chart, index, onRemove }: any) {
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        gridColumn: `span ${span}`,
         position: 'relative' as const,
         zIndex: isDragging ? 50 : 1,
         opacity: isDragging ? 0.8 : 1,
     };
+    const spanClass = chart.type === 'pie' || chart.type === 'radar' || chart.type === 'donut' ? 'chart-grid-sm' : 'chart-grid-lg';
 
     return (
-        <div ref={setNodeRef} style={style}>
+        <div ref={setNodeRef} style={style} className={spanClass}>
             <div 
                 {...attributes} 
                 {...listeners} 
@@ -142,12 +143,12 @@ export function DashboardView() {
 
             <FilterPanel filters={filters} onFiltersChange={handleFiltersChange} />
 
-            <main style={{ padding: '2rem 3rem', maxWidth: '1800px', margin: '0 auto', width: '100%' }}>
+            <main className="dashboard-main" style={{ maxWidth: '1800px', margin: '0 auto', width: '100%' }}>
                 {/* File info bar + Tab Navigation */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="info-bar-glow"
+                    className="info-bar-glow dashboard-info-bar"
                     style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         marginBottom: '1.5rem', padding: '0.625rem 1rem', borderRadius: 'var(--radius-full)',
@@ -155,10 +156,20 @@ export function DashboardView() {
                         flexWrap: 'wrap', gap: '0.75rem',
                     }}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <FileText size={16} style={{ color: 'var(--accent-primary)' }} />
-                        <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>{cleanedDataset.fileName}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{cleanedDataset.rowCount.toLocaleString()} rows × {cleanedDataset.columnCount} columns</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <FileText size={16} style={{ color: 'var(--accent-primary)' }} />
+                            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-primary)' }}>{cleanedDataset.fileName}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{cleanedDataset.rowCount.toLocaleString()} rows × {cleanedDataset.columnCount} columns</span>
+                        </div>
+                        <button
+                            className="btn-icon"
+                            onClick={() => downloadDatasetAsCSV(cleanedDataset.columns, cleanedDataset.rows, cleanedDataset.fileName)}
+                            title="Download cleaned data as CSV"
+                            style={{ padding: '0.375rem' }}
+                        >
+                            <Download size={14} />
+                        </button>
                     </div>
 
                     {/* Tab Navigation */}
@@ -219,7 +230,7 @@ export function DashboardView() {
                                 <h3 style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                                     <Lightbulb size={15} style={{ color: '#f1c21b' }} /> Key Insights
                                 </h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '0.5rem' }}>
+                                <div className="insights-grid" style={{ display: 'grid', gap: '0.5rem' }}>
                                     {insights.map((insight) => {
                                         const Icon = insightIcons[insight.category] || Lightbulb;
                                         const alert = insightAlertStyles[insight.alertLevel] || insightAlertStyles.neutral;
@@ -238,9 +249,9 @@ export function DashboardView() {
                         )}
 
                         {/* Grid: KPIs */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
+                        <div className="kpi-grid" style={{ display: 'grid', gap: '1.25rem', marginBottom: '1.5rem' }}>
                             {kpis.map((kpi, i) => (
-                                <motion.div key={kpi.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }} style={{ gridColumn: `span ${kpis.length <= 3 ? 4 : 3}` }}>
+                                <motion.div key={kpi.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }} className="kpi-grid-item">
                                     <KPICard kpi={kpi} index={i} />
                                 </motion.div>
                             ))}
@@ -249,7 +260,7 @@ export function DashboardView() {
                         {/* Grid: Sortable Charts */}
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                             <SortableContext items={sortedRenderCharts.map(c => c.id)} strategy={rectSortingStrategy}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '1.25rem', marginBottom: '1.5rem' }}>
+                                <div className="chart-grid" style={{ display: 'grid', gap: '1.25rem', marginBottom: '1.5rem' }}>
                                     {sortedRenderCharts.map((chart, i) => (
                                         <SortableChartItem 
                                             key={chart.id} 

@@ -21,7 +21,9 @@ import {
     CheckCircle2,
     AlertTriangle,
     Info,
+    Download,
 } from 'lucide-react';
+import { downloadDatasetAsCSV } from '@/lib/utils';
 
 const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
     CopyMinus,
@@ -281,7 +283,7 @@ export function CleaningPanel() {
                 </div>
             </div>
 
-            {/* Generate Dashboard CTA */}
+            {/* Actions Row: Download + Generate Dashboard */}
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -289,9 +291,20 @@ export function CleaningPanel() {
                 style={{
                     display: 'flex',
                     justifyContent: 'center',
+                    gap: '1rem',
                     paddingTop: '1rem',
+                    flexWrap: 'wrap',
                 }}
+                className="cleaning-cta-row"
             >
+                <button
+                    className="btn-secondary"
+                    onClick={() => downloadDatasetAsCSV(cleanedDataset.columns, cleanedDataset.rows, cleanedDataset.fileName)}
+                    style={{ fontSize: '0.875rem', padding: '0.75rem 1.5rem' }}
+                >
+                    <Download size={16} />
+                    Download Cleaned Data
+                </button>
                 <button
                     className="btn-primary"
                     onClick={() => generateDashboard(isDark)}

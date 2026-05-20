@@ -283,43 +283,58 @@ function recommendCharts(
     }
 
     // ── STRATEGY 3: Low-cardinality → Part-to-whole (donut) ────
-    for (const catC of lowCards.filter((c) => c.col.uniqueCount <= 8).slice(0, 2)) {
-        // Avoid duplicate: check we haven't already made a comparison for this column
+    // Only generate donuts for 3-7 unique values with a dominant category
+    for (const catC of lowCards.filter((c) => c.col.uniqueCount >= 3 && c.col.uniqueCount <= 7).slice(0, 2)) {
         const alreadyCharted = charts.some((c) => c.xAxis === catC.col.name && c.purpose === 'comparison');
         const data = countByCategory(dataset.rows, catC.col.name);
         if (data.length >= 2) {
-            charts.push({
-                id: generateId(),
-                type: 'donut',
-                title: `${catC.col.name} Distribution`,
-                xAxis: catC.col.name,
-                data,
-                colorScheme: palette,
-                priority: alreadyCharted ? priority++ + 10 : priority++,
-                purpose: 'part-to-whole',
-                description: `Proportional breakdown of ${catC.col.name}`,
-            });
+            // Check for dominance: skip if values are roughly even
+            const total = data.reduce((s, d) => s + (Number(d.value) || 0), 0);
+            const topPct = total > 0 ? ((Number(data[0]?.value) || 0) / total) * 100 : 0;
+            const hasDominance = topPct >= 25; // at least one category > 25%
+            if (hasDominance) {
+                charts.push({
+                    id: generateId(),
+                    type: 'donut',
+                    title: `${catC.col.name} Breakdown`,
+                    xAxis: catC.col.name,
+                    data,
+                    colorScheme: palette,
+                    priority: alreadyCharted ? priority++ + 10 : priority++,
+                    purpose: 'part-to-whole',
+                    description: `"${data[0]?.name}" leads at ${topPct.toFixed(0)}% of total`,
+                });
+            }
         }
     }
 
-    // ── STRATEGY 4: Two measures → Scatter (correlation) ───────
+    // ── STRATEGY 4: Two measures → Scatter (correlation-aware) ──
+    // Only generate scatter when Pearson r > 0.3
     if (measures.length >= 2) {
-        const sample = dataset.rows.slice(0, 500).map((r) => ({
-            [measures[0].col.name]: r[measures[0].col.name],
-            [measures[1].col.name]: r[measures[1].col.name],
-        }));
-        charts.push({
-            id: generateId(),
-            type: 'scatter',
-            title: `${measures[0].col.name} vs ${measures[1].col.name}`,
-            xAxis: measures[0].col.name,
-            yAxis: measures[1].col.name,
-            data: sample,
-            colorScheme: [palette[0]],
-            priority: priority++,
-            purpose: 'correlation',
-            description: `Relationship between ${measures[0].col.name} and ${measures[1].col.name}`,
-        });
+        const m0 = measures[0].col.name;
+        const m1 = measures[1].col.name;
+        const pairs = dataset.rows
+            .filter((r) => r[m0] != null && r[m1] != null)
+            .slice(0, 500)
+            .map((r) => [Number(r[m0]), Number(r[m1])] as [number, number]);
+        const corr = pearsonCorrelation(pairs);
+        if (Math.abs(corr) >= 0.3) {
+            const sample = pairs.map(([x, y]) => ({ [m0]: x, [m1]: y }));
+            const strength = Math.abs(corr) >= 0.7 ? 'Strong' : 'Moderate';
+            const direction = corr > 0 ? 'positive' : 'negative';
+            charts.push({
+                id: generateId(),
+                type: 'scatter',
+                title: `${m0} vs ${m1}`,
+                xAxis: m0,
+                yAxis: m1,
+                data: sample,
+                colorScheme: [palette[0]],
+                priority: priority++,
+                purpose: 'correlation',
+                description: `${strength} ${direction} correlation (r=${corr.toFixed(2)})`,
+            });
+        }
     }
 
     // ── STRATEGY 5: Measure distribution → Histogram ───────────
@@ -348,23 +363,25 @@ function recommendCharts(
     // cities, statuses, etc. — by counting occurrences.
     // ══════════════════════════════════════════════════════════
 
-    // ── STRATEGY 6: High-cardinality category → Top-N bar ──────
+    // ── STRATEGY 6: High-cardinality category → Top-10 bar ──────
     for (const catC of highCards.slice(0, 2)) {
-        const rawData = countByCategory(dataset.rows, catC.col.name, 15);
-        // Remap {name, value} → {[colName], Count} for bar chart dataKey matching
+        const rawData = countByCategory(dataset.rows, catC.col.name, 10);
         const data = rawData.map((d) => ({ [catC.col.name]: d.name, Count: d.value }));
         if (data.length >= 2) {
+            const totalAll = dataset.rows.filter((r) => r[catC.col.name] != null).length;
+            const topTotal = rawData.reduce((s, d) => s + (Number(d.value) || 0), 0);
+            const topPct = totalAll > 0 ? ((topTotal / totalAll) * 100).toFixed(0) : '?';
             charts.push({
                 id: generateId(),
                 type: 'bar',
-                title: `Top ${Math.min(data.length, 15)} ${catC.col.name}`,
+                title: `Top ${Math.min(data.length, 10)} ${catC.col.name}`,
                 xAxis: catC.col.name,
                 yAxis: 'Count',
                 data,
                 colorScheme: palette,
                 priority: priority++,
                 purpose: 'comparison',
-                description: `Most frequent ${catC.col.name} values by count`,
+                description: `Top ${data.length} values represent ${topPct}% of all records`,
             });
         }
     }
@@ -487,16 +504,16 @@ function recommendCharts(
         }
     }
 
-    // De-duplicate and limit
+    // De-duplicate and limit — include purpose in key to avoid redundancy
     const seen = new Set<string>();
     const unique = charts.filter((c) => {
-        const key = `${c.type}-${c.xAxis}-${c.yAxis || ''}`;
+        const key = `${c.type}-${c.xAxis}-${c.yAxis || ''}-${c.purpose}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
     });
 
-    return unique.sort((a, b) => a.priority - b.priority).slice(0, 8);
+    return unique.sort((a, b) => a.priority - b.priority).slice(0, 10);
 }
 
 // ── Data Aggregation Helpers ─────────────────────────────────
@@ -695,6 +712,20 @@ function buildHistogram(
 function formatBinValue(v: number): string {
     if (Math.abs(v) >= 1000) return Math.round(v).toLocaleString();
     return v.toFixed(1);
+}
+
+function pearsonCorrelation(pairs: [number, number][]): number {
+    const n = pairs.length;
+    if (n < 5) return 0;
+    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+    for (const [x, y] of pairs) {
+        sumX += x; sumY += y;
+        sumXY += x * y;
+        sumX2 += x * x; sumY2 += y * y;
+    }
+    const denom = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+    if (denom === 0) return 0;
+    return (n * sumXY - sumX * sumY) / denom;
 }
 
 // ── Data Insight Generation ──────────────────────────────────

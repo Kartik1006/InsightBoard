@@ -48,6 +48,7 @@ export function FilterPanel({ filters, onFiltersChange }: FilterPanelProps) {
 
     return (
         <div
+            className="filter-panel-container"
             style={{
                 display: 'flex',
                 alignItems: 'center',

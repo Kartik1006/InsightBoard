@@ -21,6 +21,7 @@ export function Header() {
 
     return (
         <header
+            className="app-header"
             style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -62,7 +63,7 @@ export function Header() {
             </div>
 
             {/* Step Navigation */}
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <nav className="header-nav" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 {steps.map((step, i) => {
                     const isActive = state.currentStep === step.key;
                     const isAccessible =
@@ -106,10 +107,7 @@ export function Header() {
                                 }}
                             >
                                 <step.icon size={16} />
-                                <span style={{ display: 'none' }} className="sm-show">
-                                    {step.label}
-                                </span>
-                                <span>{step.label}</span>
+                                <span className="header-step-label">{step.label}</span>
                             </button>
                         </div>
                     );
