@@ -13,6 +13,17 @@ Upload any dataset, and InsightBoard automatically generates KPI cards, smart ch
 
 Live Demo: [https://insight-board-omega.vercel.app/](https://insight-board-omega.vercel.app/)
 
+Screenshots:
+
+<img width="1910" height="936" alt="image" src="https://github.com/user-attachments/assets/c9d68881-91ae-4268-99b1-2351dbdc2e01" />
+
+<img width="1908" height="927" alt="image" src="https://github.com/user-attachments/assets/108133c9-521c-47e7-a9a6-0fbd0a7a8b22" />
+
+<img width="1896" height="944" alt="image" src="https://github.com/user-attachments/assets/c615c972-4147-4820-95d7-3efaa134150b" />
+
+<img width="1894" height="935" alt="image" src="https://github.com/user-attachments/assets/39ced09a-2452-4571-9c08-772219d175c8" />
+
+
 ## ✨ Why It Was Made
 
 Data analysis tools are often either too complex (requiring specialized coding knowledge) or too rigid (lacking deep customization). InsightBoard bridges this gap by providing a no-code, drag-and-drop interface paired with the power of advanced data processing, AI capabilities, and SQL querying. It was created to:
